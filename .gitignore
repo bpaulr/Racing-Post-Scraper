@@ -3,3 +3,4 @@ venv/
 .vscode/
 .project/
 __pycache__/
+*.db

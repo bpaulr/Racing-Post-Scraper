@@ -1,4 +1,5 @@
 import scrapy
+from datetime import date
 
 from racingpost_scraper.items import RaceCardItem
 
@@ -27,7 +28,8 @@ class RaceCardSpider(scrapy.Spider):
             racecard["title"] = title
             racecard["course_name"] = course_name
             racecard["track_type"] = track_type
-            racecard["time"] = time
+            racecard["race_date"] = date.today().strftime("%Y-%m-%d")
+            racecard["race_time"] = time
             racecard["url"] = abs_url
 
             yield racecard

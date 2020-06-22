@@ -12,7 +12,8 @@ class RaceCardItem(scrapy.Item):
     title = scrapy.Field()
     course_name = scrapy.Field()
     track_type = scrapy.Field()
-    time = scrapy.Field()
+    race_date = scrapy.Field()  # YYYY/MM/DD
+    race_time = scrapy.Field()
     url = scrapy.Field()
 
 
