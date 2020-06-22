@@ -8,7 +8,7 @@
 import scrapy
 
 
-class RaceCardItem(scrapy.Item):
+class RaceItem(scrapy.Item):
     title = scrapy.Field()
     course_name = scrapy.Field()
     track_type = scrapy.Field()

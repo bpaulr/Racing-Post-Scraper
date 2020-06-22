@@ -69,7 +69,19 @@ class Util:
 
 class RaceCardItemPipeline:
     def open_spider(self, spider):
-        self.pipeline = Util("Race_Cards", "racecard_id")
+        self.pipeline = Util("Races", "race_id")
+
+    def close_spider(self, spider):
+        self.pipeline.close()
+
+    def process_item(self, item, spider):
+        self.pipeline.process_item(item)
+        return item
+
+
+class RaceRunnerItemPipeline:
+    def open_spider(self, spider):
+        self.pipeline = Util("Race_Runners", "runner_id")
 
     def close_spider(self, spider):
         self.pipeline.close()
