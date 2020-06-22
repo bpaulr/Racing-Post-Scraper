@@ -31,11 +31,11 @@ def generate_insert_statement(table: str, item: dict, pk_name: str) -> str:
     keys, values, statement_vals = [], [], []
     for k, v in item.items():
         keys.append(k)
-        values.append(f"'{v}'")
+        values.append("?")
+    values.append("?")  # extra one for primary key
     keys_str = ', '.join(keys)
     values_str = ', '.join(values)
-    pk_value = f"'{hash_dict(item)}'"
-    return f"INSERT INTO {table} ({pk_name + ', ' + keys_str}) VALUES ({pk_value + ', ' + values_str})"
+    return f"INSERT INTO {table} ({pk_name + ', ' + keys_str}) VALUES ({values_str})"
 
 
 class Util:
@@ -58,9 +58,12 @@ class Util:
 
         try:
             insert_statement = generate_insert_statement(self.table, sorted_dict, self.pk_name)
-            self.cursor.execute(insert_statement)
+            values = [hash_dict(sorted_dict)] + list(sorted_dict.values())
+            self.cursor.execute(insert_statement, values)
         except sqlite3.IntegrityError:
             pass
+        except sqlite3.OperationalError:
+            print(item)
 
     def close(self):
         self.connection.commit()
