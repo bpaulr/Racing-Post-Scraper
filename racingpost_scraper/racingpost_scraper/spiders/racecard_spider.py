@@ -3,7 +3,7 @@ import scrapy
 from racingpost_scraper.items import RaceRunnerItem
 
 
-class RaceSpider(scrapy.Spider):
+class RaceCardSpider(scrapy.Spider):
     name = "racecard-spider"
 
     custom_settings = {
