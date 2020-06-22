@@ -8,15 +8,22 @@
 import scrapy
 
 
-class RacingpostScraperItem(scrapy.Item):
-    # define the fields for your item here like:
-    # name = scrapy.Field()
-    pass
-
-
 class RaceCardItem(scrapy.Item):
     title = scrapy.Field()
     course_name = scrapy.Field()
     track_type = scrapy.Field()
     time = scrapy.Field()
     url = scrapy.Field()
+
+
+class RaceRunnerItem(scrapy.Item):
+    no_form = scrapy.Field()
+    horse = scrapy.Field()
+    horse_url = scrapy.Field()
+    age = scrapy.Field()
+    wgt = scrapy.Field()
+    _or = scrapy.Field()
+    jockey = scrapy.Field()
+    jockey_url = scrapy.Field()
+    trainer = scrapy.Field()
+    trainer_url = scrapy.Field()

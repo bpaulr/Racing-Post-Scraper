@@ -29,5 +29,5 @@ class RaceCardSpider(scrapy.Spider):
             racecard["track_type"] = track_type
             racecard["time"] = time
             racecard["url"] = abs_url
-            print(racecard)
+
             yield racecard
