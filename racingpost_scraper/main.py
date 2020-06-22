@@ -1,50 +1,45 @@
+import sqlite3
+
+from racingpost_scraper.pipelines import DATABASE
 from racingpost_scraper.spiders.race_spider import RaceSpider
-
-from datetime import datetime
-from pathlib import Path
-from typing import List
-
-from scrapy.crawler import CrawlerProcess
+from racingpost_scraper.spiders.racecard_spider import RaceCardSpider
+from scrapy.crawler import CrawlerProcess, CrawlerRunner
+from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
+from twisted.internet import reactor, defer
+
+configure_logging()
+runner = CrawlerRunner()
+
+# (spider_name, table, url_col)
+crawlers = [
+    (RaceSpider, "Races", "url"),
+    (RaceCardSpider, "Race_Runners", "horse_url"),
+]
 
 
-def load_start_urls(file: str) -> List[str]:
-    with open(file, "r") as f:
-        lines = f.readlines()
-    i = 0
-    while i < len(lines):
-        if lines[i] is None or lines[i] == "":
-            lines.pop(i)
+@defer.inlineCallbacks
+def crawl():
+    for i in range(len(crawlers)):
+        spider, table, url_col = crawlers[i]
+        if i > 0:
+            connection = sqlite3.connect(DATABASE)
+            cursor = connection.cursor()
+            past_table = crawlers[i - 1][1]
+            past_url_col = crawlers[i - 1][2]
+            url_query = f"SELECT {past_url_col} FROM {past_table}"
+            start_urls = [t[0] for t in cursor.execute(url_query)]
+            connection.close()
+            yield runner.crawl(spider, start_urls=start_urls)
         else:
-            i += 1
-    return lines
+            yield runner.crawl(spider)
+
+    reactor.stop()
 
 
-def main1():
-    date = str(datetime.now()).replace(" ", "_").split(".")[0]
-
-    path = Path(__file__).parent.absolute()
-    data_path = Path.joinpath(path, Path("/data"))
-    file_suffix = date + ".csv"
-    feed_uri = str(data_path) + "/{}_" + file_suffix
-
-    spiders = [
-        "race-spider",
-    ]
-
-    settings = get_project_settings()
-    settings["FEED_FORMAT"] = "csv"
-
-    last_file = None
-    for spider in spiders:
-        settings["FEED_URI"] = "file:///" + feed_uri.format(spider)
-        last_file = feed_uri.format(spider)
-        process = CrawlerProcess(settings)
-        if last_file is not None:
-            process.crawl(spider, start_urls=load_start_urls(last_file))
-        else:
-            process.crawl(spider)
-        process.start()
+def main():
+    crawl()
+    reactor.run()
 
 
 def main2():
@@ -55,4 +50,4 @@ def main2():
 
 
 if __name__ == '__main__':
-    main2()
+    main()
