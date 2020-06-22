@@ -38,7 +38,7 @@ def generate_insert_statement(table: str, item: dict, pk_name: str) -> str:
     return f"INSERT INTO {table} ({pk_name + ', ' + keys_str}) VALUES ({values_str})"
 
 
-class Util:
+class UtilPipeline:
     def __init__(self, table: str, pk_name: str):
         self.table = table
         self.pk_name = pk_name
@@ -72,7 +72,7 @@ class Util:
 
 class RaceCardItemPipeline:
     def open_spider(self, spider):
-        self.pipeline = Util("Races", "race_id")
+        self.pipeline = UtilPipeline("Races", "race_id")
 
     def close_spider(self, spider):
         self.pipeline.close()
@@ -84,7 +84,7 @@ class RaceCardItemPipeline:
 
 class RaceRunnerItemPipeline:
     def open_spider(self, spider):
-        self.pipeline = Util("Race_Runners", "runner_id")
+        self.pipeline = UtilPipeline("Race_Runners", "runner_id")
 
     def close_spider(self, spider):
         self.pipeline.close()
