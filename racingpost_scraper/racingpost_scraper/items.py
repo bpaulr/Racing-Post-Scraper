@@ -28,3 +28,40 @@ class RaceRunnerItem(scrapy.Item):
     jockey_url = scrapy.Field()
     trainer = scrapy.Field()
     trainer_url = scrapy.Field()
+
+
+class HorseItem(scrapy.Item):
+    name = scrapy.Field()
+    age = scrapy.Field()
+    breeder = scrapy.Field()
+    trainer = scrapy.Field()
+    owners = scrapy.Field()
+    sire = scrapy.Field()
+    sire_url = scrapy.Field()
+    dam_sire = scrapy.Field()
+    dam_sire_url = scrapy.Field()
+
+
+class SireItem(scrapy.Item):
+    name = scrapy.Field()
+    age = scrapy.Field()
+    breeder = scrapy.Field()
+    trainer = scrapy.Field()
+    racing_owner = scrapy.Field()
+    sire = scrapy.Field()
+    sire_url = scrapy.Field()
+    dam_sire = scrapy.Field()
+    dam_sire_url = scrapy.Field()
+    stats = scrapy.Field()
+
+
+class ProgenyStatsItem(scrapy.Item):
+    race_type = scrapy.Field()
+    winners_runners = scrapy.Field()
+    winners_runners_percent = scrapy.Field()
+    wins = scrapy.Field()
+    runs = scrapy.Field()
+    wins_runs_percent = scrapy.Field()
+    second = scrapy.Field()
+    third = scrapy.Field()
+    total_earnings = scrapy.Field()
