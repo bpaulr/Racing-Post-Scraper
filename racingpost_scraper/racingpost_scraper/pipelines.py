@@ -91,7 +91,19 @@ class RaceCardItemPipeline:
 
 class RaceRunnerItemPipeline:
     def open_spider(self, spider):
-        self.pipeline = UtilPipeline("Race_Runners", "runner_id")
+        self.pipeline = UtilPipeline("Race_Runners", "runner_id", use_hash=True)
+
+    def close_spider(self, spider):
+        self.pipeline.close()
+
+    def process_item(self, item, spider):
+        self.pipeline.process_item(item)
+        return item
+
+
+class HorseItemPipeline:
+    def open_spider(self, spider):
+        self.pipeline = UtilPipeline("Horses", "name")
 
     def close_spider(self, spider):
         self.pipeline.close()
