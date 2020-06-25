@@ -5,8 +5,10 @@ from racingpost_scraper.spiders.horse_spider import HorseSpider
 from racingpost_scraper.spiders.race_spider import RaceSpider
 from racingpost_scraper.spiders.racecard_spider import RaceCardSpider
 from racingpost_scraper.spiders.sire_spider import SireSpider
-from scrapy.crawler import CrawlerRunner
+from racingpost_scraper.spiders.trainer_spider import TrainerSpider
+from scrapy.crawler import CrawlerRunner, CrawlerProcess
 from scrapy.utils.log import configure_logging
+from scrapy.utils.project import get_project_settings
 from twisted.internet import reactor, defer
 
 configure_logging()
@@ -14,9 +16,9 @@ runner = CrawlerRunner()
 
 # (spider_name, table, url_col)
 crawlers = [
-    (RaceSpider, "Races", ["url"]),
-    (RaceCardSpider, "Race_Runners", ["horse_url"]),
-    (HorseSpider, "Horses", ["name"]),
+    (RaceSpider, "Races", "url"),
+    (RaceCardSpider, "Race_Runners", "horse_url"),
+    (HorseSpider, "Horses", "name"),
 ]
 
 
@@ -47,6 +49,8 @@ def crawl():
 
     yield runner.crawl(SireSpider, start_urls=horses)
 
+    yield runner.crawl(TrainerSpider, start_urls=[s[0] for s in cursor.execute(f"SELECT trainer_url from Race_Runners")])
+
     reactor.stop()
 
 
@@ -55,6 +59,13 @@ def main():
     reactor.run()
 
     print("JOB COMPLETE!")
+
+
+def main2():
+    process = CrawlerProcess(get_project_settings())
+
+    process.crawl("trainer-spider")
+    process.start()
 
 
 if __name__ == '__main__':

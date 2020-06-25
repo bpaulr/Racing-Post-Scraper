@@ -13,6 +13,8 @@ from typing import List
 
 DATABASE = "Racing_Post_Scrapes.db"
 
+from racingpost_scraper.items import TrainerStatsItem
+from racingpost_scraper.items import TrainerRecordItem
 
 def hash_dict(d: dict, dont_hash_keys: List[str] = "") -> str:
     new_dict = {}
@@ -125,4 +127,26 @@ class SireProgenyStatsItemPipeline:
 
     def process_item(self, item, spider):
         self.pipeline.process_item(item)
+        return item
+
+
+# processes 2 different types of items, TrainerStats and TrainerRecord
+class TrainerItemPipeline:
+    def open_spider(self, spider):
+        self.trainer_stats_pipeline = UtilPipeline("Trainer_Stats", ["trainer_uid", "seasonStartDate", "seasonEndDate"])
+        self.trainer_record_pipeline = UtilPipeline("Trainer_Records", ["trainer_uid", "n_years", "groupName"])
+
+    def close_spider(self, spider):
+        self.trainer_stats_pipeline.close()
+        self.trainer_record_pipeline.close()
+
+    def process_item(self, item, spider):
+        if isinstance(item, TrainerStatsItem):
+            self.trainer_stats_pipeline.process_item(item)
+            self.trainer_stats_pipeline.connection.commit()
+        elif isinstance(item, TrainerRecordItem):
+            self.trainer_record_pipeline.process_item(item)
+            self.trainer_record_pipeline.connection.commit()
+        else:
+            raise Exception(f"Unexpected Item Type - {type(item)}")
         return item
