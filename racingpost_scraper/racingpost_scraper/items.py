@@ -42,26 +42,18 @@ class HorseItem(scrapy.Item):
     dam_sire_url = scrapy.Field()
 
 
-class SireItem(scrapy.Item):
-    name = scrapy.Field()
-    age = scrapy.Field()
-    breeder = scrapy.Field()
-    trainer = scrapy.Field()
-    racing_owner = scrapy.Field()
-    sire = scrapy.Field()
-    sire_url = scrapy.Field()
-    dam_sire = scrapy.Field()
-    dam_sire_url = scrapy.Field()
-    stats = scrapy.Field()
-
-
-class ProgenyStatsItem(scrapy.Item):
-    race_type = scrapy.Field()
-    winners_runners = scrapy.Field()
-    winners_runners_percent = scrapy.Field()
-    wins = scrapy.Field()
+# field names are the same as the json keys that the website api uses
+class SireProgenyStatsItem(scrapy.Item):
+    horse_name = scrapy.Field()
+    broodmareCategory = scrapy.Field()
+    category = scrapy.Field()
+    percentWinnersRunners = scrapy.Field()
+    percentWinsRuns = scrapy.Field()
+    place2ndNumber = scrapy.Field()
+    place3rdNumber = scrapy.Field()
+    runners = scrapy.Field()
     runs = scrapy.Field()
-    wins_runs_percent = scrapy.Field()
-    second = scrapy.Field()
-    third = scrapy.Field()
-    total_earnings = scrapy.Field()
+    totalPrizeMoney = scrapy.Field()
+    winPrizeMoney = scrapy.Field()
+    winners = scrapy.Field()
+    wins = scrapy.Field()
