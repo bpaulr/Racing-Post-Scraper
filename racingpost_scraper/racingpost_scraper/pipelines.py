@@ -9,63 +9,52 @@
 import json
 import sqlite3
 from hashlib import md5
+from typing import List
 
 DATABASE = "Racing_Post_Scrapes.db"
 
 
-def hash_dict(d: dict) -> str:
-    json_dict = json.dumps(d, sort_keys=True).encode("utf-8")
+def hash_dict(d: dict, dont_hash_keys: List[str] = "") -> str:
+    new_dict = {}
+    for k, v in d.items():
+        if k not in dont_hash_keys:
+            new_dict[k] = v
+    # sorting keys enforces deterministic hashes
+    json_dict = json.dumps(new_dict, sort_keys=True).encode("utf-8")
     return md5(json_dict).hexdigest()
 
 
-def sort_dict(d: dict) -> dict:
-    return dict(sorted(d.items(), key=lambda t: t[0]))
-
-
-def generate_table_statement(table_name: str, pk_name: str, item: dict) -> str:
-    return f"CREATE TABLE IF NOT EXISTS {table_name} ({pk_name} " + \
-           f"TEXT PRIMARY KEY, {', '.join([str(k) + ' TEXT' for k in item.keys() if str(k) != pk_name])})"
-
-
-def generate_insert_statement(table: str, item: dict, pk_name: str, use_hash: bool) -> str:
-    keys, values = [], []
-    for k, v in item.items():
-        if k != pk_name:
-            keys.append(k)
-        values.append("?")
-    if use_hash:
-        values.append("?")  # extra one for hash primary key
-    keys_str = ', '.join(keys)
-    values_str = ', '.join(values)
-    return f"INSERT INTO {table} ({pk_name + ', ' + keys_str}) VALUES ({values_str})"
-
-
 class UtilPipeline:
-    def __init__(self, table: str, pk_name: str, use_hash=False):
+    def __init__(self, table: str, primary_keys: List[str], use_hash=False):
+        if len(primary_keys) < 1:
+            raise Exception("At least one primary key needs to be specified.")
+        if use_hash and len(primary_keys) != 1:
+            raise Exception("Only a single primary key can be specified when using a row hash primary key.")
         self.table = table
-        self.pk_name = pk_name
+        self.primary_keys = primary_keys
         self.connection = sqlite3.connect(DATABASE)
         self.use_hash = use_hash
         self.cursor = self.connection.cursor()
         self.cursor.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{self.table}'")
-        self.table_exists = len(self.cursor.fetchall()) == 1
+        self.__table_exists = len(self.cursor.fetchall()) == 1
 
     def process_item(self, item):
-        item_dict = sort_dict(item) if self.use_hash else item.deepcopy()
+        item_dict = dict(item.deepcopy())
 
-        if not self.table_exists:
-            create_statement = generate_table_statement(self.table, self.pk_name, item)
+        # add the hash primary key to the item
+        if self.use_hash:
+            item_dict[self.primary_keys[0]] = hash_dict(item_dict)
+
+        if not self.__table_exists:
+            create_statement = self.generate_table_statement(item_dict.keys())
             self.cursor.execute(create_statement)
             self.connection.commit()
-            self.table_exists = True
+            self.__table_exists = True
 
         try:
-            insert_statement = generate_insert_statement(self.table, item_dict, self.pk_name, self.use_hash)
-            values = None
-            if self.use_hash:
-                values = [hash_dict(item_dict)] + list(item_dict.values())
-            else:
-                values = list(item_dict.values())
+            keys = [str(k) for k in item_dict.keys()]
+            values = [str(v) for v in item_dict.values()]
+            insert_statement = self.generate_insert_statement(keys)  # TODO: make this into a replace statement
             self.cursor.execute(insert_statement, values)
         except sqlite3.IntegrityError:
             pass  # means item is already in database
@@ -76,10 +65,24 @@ class UtilPipeline:
         self.connection.commit()
         self.connection.close()
 
+    def generate_table_statement(self, fields: List[str]) -> str:
+        cols = [field + " TEXT" for field in fields]
+        cols_str = ', '.join(cols)
+        pks_str = ', '.join(self.primary_keys)
+        return f"CREATE TABLE IF NOT EXISTS {self.table} ({cols_str}, PRIMARY KEY ({pks_str}))"
+
+    def generate_insert_statement(self, fields: List[str]) -> str:
+        values = []
+        for _ in range(len(fields)):
+            values.append("?")
+        keys_str = ', '.join(fields)
+        values_str = ', '.join(values)
+        return f"INSERT INTO {self.table} ({keys_str}) VALUES ({values_str})"
+
 
 class RaceCardItemPipeline:
     def open_spider(self, spider):
-        self.pipeline = UtilPipeline("Races", "race_id", use_hash=True)
+        self.pipeline = UtilPipeline("Races", ["race_id"], use_hash=True)
 
     def close_spider(self, spider):
         self.pipeline.close()
@@ -91,7 +94,7 @@ class RaceCardItemPipeline:
 
 class RaceRunnerItemPipeline:
     def open_spider(self, spider):
-        self.pipeline = UtilPipeline("Race_Runners", "runner_id", use_hash=True)
+        self.pipeline = UtilPipeline("Race_Runners", ["runner_id"], use_hash=True)
 
     def close_spider(self, spider):
         self.pipeline.close()
@@ -103,7 +106,7 @@ class RaceRunnerItemPipeline:
 
 class HorseItemPipeline:
     def open_spider(self, spider):
-        self.pipeline = UtilPipeline("Horses", "name")
+        self.pipeline = UtilPipeline("Horses", ["name"])
 
     def close_spider(self, spider):
         self.pipeline.close()
