@@ -49,7 +49,7 @@ class RaceCardSpider(scrapy.Spider):
             runner_item["_or"] = info.xpath('./div[@class="RC-runnerWgtorWrapper"]/span[@class="RC-runnerOr"]/text()').get().strip()
 
             jockey_trainer = info.xpath('./div[@class="RC-runnerInfoWrapper"]')
-            runner_item["jockey"] = jockey_trainer.xpath('./div[@class="RC-runnerInfo RC-runnerInfo_jockey"]/a/text()').get().strip()
+            runner_item["jockey"] = jockey_trainer.xpath('./div[@class="RC-runnerInfo RC-runnerInfo_jockey"]/a/text()').get(default="").strip()
             runner_item["jockey_url"] = response.urljoin(jockey_trainer.xpath('./div[@class="RC-runnerInfo RC-runnerInfo_jockey"]/a/@href').get().strip())
 
             runner_item["trainer"] = jockey_trainer.xpath('./div[@class="RC-runnerInfo RC-runnerInfo_trainer"]/a/text()').get().strip()
