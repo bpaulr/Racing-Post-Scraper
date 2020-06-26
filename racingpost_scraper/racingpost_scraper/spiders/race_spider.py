@@ -1,7 +1,11 @@
 from datetime import date
+from datetime import timedelta
 
 import scrapy
 from racingpost_scraper.items import RaceItem
+
+# date syntax is `YYYY-MM-DD`
+DATE_URL = "https://www.racingpost.com/racecards/{}/time-order"
 
 
 class RaceSpider(scrapy.Spider):
@@ -15,12 +19,24 @@ class RaceSpider(scrapy.Spider):
 
     allowed_domains = ["www.racingpost.com"]
 
-    start_urls = ["https://www.racingpost.com/racecards/time-order"]
+    start_urls = ["https://www.racingpost.com/racecards/2020-07-02/time-order"]
 
-    def parse(self, response):
+    def start_requests(self):
+        url = self.start_urls[0]
+        race_date = date.today()
+        yield scrapy.Request(url=url, callback=self.parse, cb_kwargs={'race_date': race_date.strftime("%Y-%m-%d")})
+        for i in range(6):
+            new_date = (race_date + timedelta(days=i + 1)).strftime("%Y-%m-%d")
+            new_url = DATE_URL.format(new_date)
+            yield scrapy.Request(url=new_url, callback=self.parse, cb_kwargs={'race_date': new_date})
+
+    def parse(self, response, race_date):
         races = response.xpath('//main/section/div[@class="RC-meetingList RC-meetingList_byTime"]/div')
         for card in races:
             rel_url = card.xpath('./a/@href').get()
+            # there is no point in looking at race if a race page has not been set up yet
+            if rel_url is None:
+                return None
             abs_url = response.urljoin(rel_url)
 
             time = card.xpath('./a/div[@class="RC-meetingItem__time"]/span/text()').get()
@@ -34,7 +50,7 @@ class RaceSpider(scrapy.Spider):
             race["title"] = title
             race["course_name"] = course_name
             race["track_type"] = track_type
-            race["race_date"] = date.today().strftime("%Y-%m-%d")
+            race["race_date"] = race_date
             race["race_time"] = time
             race["url"] = abs_url
 
