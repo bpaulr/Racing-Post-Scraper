@@ -5,6 +5,7 @@ from racingpost_scraper.spiders.horse_spider import HorseSpider
 from racingpost_scraper.spiders.race_spider import RaceSpider
 from racingpost_scraper.spiders.racecard_spider import RaceCardSpider
 from racingpost_scraper.spiders.sire_spider import SireSpider
+from racingpost_scraper.spiders.jockey_spider import JockeySpider
 from racingpost_scraper.spiders.trainer_spider import TrainerSpider
 from scrapy.crawler import CrawlerRunner, CrawlerProcess
 from scrapy.utils.log import configure_logging
@@ -14,25 +15,24 @@ from twisted.internet import reactor, defer
 configure_logging()
 runner = CrawlerRunner()
 
-# (spider_name, table, url_col)
+# (spider_name, table, query)
 crawlers = [
-    (RaceSpider, "Races", "url"),
-    (RaceCardSpider, "Race_Runners", "horse_url"),
-    (HorseSpider, "Horses", "name"),
+    (RaceSpider, ""),
+    (RaceCardSpider, "SELECT url FROM Races"),
+    (HorseSpider, "SELECT horse_url FROM Race_Runners"),
+    (TrainerSpider, "SELECT trainer_url FROM Race_Runners"),
+    (JockeySpider, "SELECT jockey_url FROM Race_Runners"),
 ]
 
 
 @defer.inlineCallbacks
 def crawl():
     for i in range(len(crawlers)):
-        spider, table, url_col = crawlers[i]
+        spider, query = crawlers[i]
         if i > 0:
             connection = sqlite3.connect(DATABASE)
             cursor = connection.cursor()
-            past_table = crawlers[i - 1][1]
-            past_url_col = crawlers[i - 1][2]
-            url_query = f"SELECT {past_url_col} FROM {past_table}"
-            start_urls = [t[0] for t in cursor.execute(url_query)]
+            start_urls = [t[0] for t in cursor.execute(query)]
             connection.close()
             yield runner.crawl(spider, start_urls=start_urls)
         else:
@@ -49,8 +49,6 @@ def crawl():
 
     yield runner.crawl(SireSpider, start_urls=horses)
 
-    yield runner.crawl(TrainerSpider, start_urls=[s[0] for s in cursor.execute(f"SELECT trainer_url from Race_Runners")])
-
     reactor.stop()
 
 
@@ -64,7 +62,7 @@ def main():
 def main2():
     process = CrawlerProcess(get_project_settings())
 
-    process.crawl("trainer-spider")
+    process.crawl("jockey-spider")
     process.start()
 
 

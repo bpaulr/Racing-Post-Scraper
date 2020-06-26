@@ -15,6 +15,9 @@ DATABASE = "Racing_Post_Scrapes.db"
 
 from racingpost_scraper.items import TrainerStatsItem
 from racingpost_scraper.items import TrainerRecordItem
+from racingpost_scraper.items import JockeyStatsItem
+from racingpost_scraper.items import JockeyRecordItem
+
 
 def hash_dict(d: dict, dont_hash_keys: List[str] = "") -> str:
     new_dict = {}
@@ -147,6 +150,28 @@ class TrainerItemPipeline:
         elif isinstance(item, TrainerRecordItem):
             self.trainer_record_pipeline.process_item(item)
             self.trainer_record_pipeline.connection.commit()
+        else:
+            raise Exception(f"Unexpected Item Type - {type(item)}")
+        return item
+
+
+# processes 2 different types of items, JockeyStats and JockeyRecord
+class JockeyItemPipeline:
+    def open_spider(self, spider):
+        self.jockey_stats_pipeline = UtilPipeline("Jockey_Stats", ["jockey_uid", "seasonStartDate", "seasonEndDate"])
+        self.jockey_record_pipeline = UtilPipeline("Jockey_Records", ["jockey_uid", "n_years", "groupName"])
+
+    def close_spider(self, spider):
+        self.jockey_stats_pipeline.close()
+        self.jockey_record_pipeline.close()
+
+    def process_item(self, item, spider):
+        if isinstance(item, JockeyStatsItem):
+            self.jockey_stats_pipeline.process_item(item)
+            self.jockey_stats_pipeline.connection.commit()
+        elif isinstance(item, JockeyRecordItem):
+            self.jockey_record_pipeline.process_item(item)
+            self.jockey_record_pipeline.connection.commit()
         else:
             raise Exception(f"Unexpected Item Type - {type(item)}")
         return item
