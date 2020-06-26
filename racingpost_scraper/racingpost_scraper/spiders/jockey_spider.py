@@ -20,6 +20,11 @@ class JockeySpider(scrapy.Spider):
 
     start_urls = ["https://www.racingpost.com/profile/jockey/98719/baptiste-le-clerc"]
 
+    def start_requests(self):
+        for url in self.start_urls:
+            if url is not None and url != "":
+                yield scrapy.Request(url=url, callback=self.parse)
+
     def parse(self, response):
         javascript: str = response.xpath('/html/body/script[1]/text()').get()
 
