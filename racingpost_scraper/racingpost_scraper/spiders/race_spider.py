@@ -33,18 +33,18 @@ class RaceSpider(scrapy.Spider):
     def parse(self, response, race_date):
         races = response.xpath('//main/section/div[@class="RC-meetingList RC-meetingList_byTime"]/div')
         for card in races:
-            rel_url = card.xpath('./a/@href').get()
+            rel_url = card.xpath('./a/@href').get(default="")
             # there is no point in looking at race if a race page has not been set up yet
             if rel_url is None:
                 return None
             abs_url = response.urljoin(rel_url)
 
-            time = card.xpath('./a/div[@class="RC-meetingItem__time"]/span/text()').get()
+            time = card.xpath('./a/div[@class="RC-meetingItem__time"]/span/text()').get(default="")
             course_box = card.xpath('./a/div[@class="RC-meetingItem__content RC-meetingItem__content_time"]/div[@class="RC-meetingItem__wrapper"]')
             course_data = course_box.xpath('./div[@class="RC-meetingItem__head"]')
-            course_name = course_data.xpath('./span[@class="RC-meetingItem__title"]/text()').get().strip()
-            track_type = course_data.xpath('./span[@class="RC-meetingItem__subText"]/text()').get().strip()
-            title = course_box.xpath('./div[@class="RC-meetingItem__body"]/div[@class="RC-meetingItem__section_n"]/span[@class="RC-meetingItem__info"]/text()').get().strip()
+            course_name = course_data.xpath('./span[@class="RC-meetingItem__title"]/text()').get(default="").strip()
+            track_type = course_data.xpath('./span[@class="RC-meetingItem__subText"]/text()').get(default="").strip()
+            title = course_box.xpath('./div[@class="RC-meetingItem__body"]/div[@class="RC-meetingItem__section_n"]/span[@class="RC-meetingItem__info"]/text()').get(default="").strip()
 
             race = RaceItem()
             race["title"] = title

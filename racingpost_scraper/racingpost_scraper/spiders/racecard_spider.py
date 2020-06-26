@@ -31,22 +31,22 @@ class RaceCardSpider(scrapy.Spider):
         for runner in runners:
             runner_item = RaceRunnerItem()
             card = runner.xpath('./div[@class="RC-runnerCardWrapper"]')
-            runner_item["no_form"] = card.xpath('./div[@class="RC-runnerRowHorseWrapper"]/div[@class="RC-runnerNumber"]/span[1]/text()').get().strip()
-            runner_item["no_form"] += card.xpath('./div[@class="RC-runnerRowHorseWrapper"]/div[@class="RC-runnerNumber"]/span[2]/text()').get().strip()
+            runner_item["no_form"] = card.xpath('./div[@class="RC-runnerRowHorseWrapper"]/div[@class="RC-runnerNumber"]/span[1]/text()').get(default="").strip()
+            runner_item["no_form"] += card.xpath('./div[@class="RC-runnerRowHorseWrapper"]/div[@class="RC-runnerNumber"]/span[2]/text()').get(default="").strip()
 
             horse = card.xpath('./div[@class="RC-runnerRowHorseWrapper"]/div[@class="RC-runnerMainWrapper"]')
-            runner_item["horse"] = horse.xpath('./a/text()').get().strip()
-            runner_item["horse_url"] = response.urljoin(horse.xpath('./a/@href').get().strip())
+            runner_item["horse"] = horse.xpath('./a/text()').get(default="").strip()
+            runner_item["horse_url"] = response.urljoin(horse.xpath('./a/@href').get(default="").strip())
 
             info = card.xpath('./div[@class="RC-runnerRowInfoWrapper"]')
-            runner_item["age"] = info.xpath('./div[@class="RC-runnerInfo"]/span[2]/text()').get().strip()
+            runner_item["age"] = info.xpath('./div[@class="RC-runnerInfo"]/span[2]/text()').get(default="").strip()
 
             wgt = info.xpath('./div[@class="RC-runnerWgtorWrapper"]/div[@class="RC-runnerWgt"]/span[@class="RC-runnerWgt__carried"]')
-            runner_item["wgt"] = wgt.xpath('./span[@class="RC-runnerWgt__carried_st"]/text()').get().strip()
+            runner_item["wgt"] = wgt.xpath('./span[@class="RC-runnerWgt__carried_st"]/text()').get(default="").strip()
             runner_item["wgt"] += "-"
-            runner_item["wgt"] += wgt.xpath('./span[@class="RC-runnerWgt__carried_lb"]/text()').get().strip()
+            runner_item["wgt"] += wgt.xpath('./span[@class="RC-runnerWgt__carried_lb"]/text()').get(default="").strip()
 
-            runner_item["_or"] = info.xpath('./div[@class="RC-runnerWgtorWrapper"]/span[@class="RC-runnerOr"]/text()').get().strip()
+            runner_item["_or"] = info.xpath('./div[@class="RC-runnerWgtorWrapper"]/span[@class="RC-runnerOr"]/text()').get(default="").strip()
 
             jockey_trainer = info.xpath('./div[@class="RC-runnerInfoWrapper"]')
             runner_item["jockey"] = jockey_trainer.xpath('./div[@class="RC-runnerInfo RC-runnerInfo_jockey"]/a/text()').get(default="").strip()

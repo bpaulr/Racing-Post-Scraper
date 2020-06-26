@@ -26,7 +26,9 @@ class TrainerSpider(scrapy.Spider):
                 yield scrapy.Request(url=url, callback=self.parse)
 
     def parse(self, response):
-        javascript: str = response.xpath('/html/body/script[1]/text()').get()
+        javascript: str = response.xpath('/html/body/script[1]/text()').get(default="")
+        if javascript is None or javascript == "":
+            return None
 
         start = javascript.find("{")
         start = javascript.find("{", start + 1)

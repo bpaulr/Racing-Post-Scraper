@@ -17,9 +17,9 @@ class HorseSpider(scrapy.Spider):
     }
 
     def parse(self, response):
-        horse = HorseItem()
-
-        javascript: str = response.xpath('/html/body/script[1]/text()').get()
+        javascript: str = response.xpath('/html/body/script[1]/text()').get(default="")
+        if javascript is None or javascript == "":
+            return None
 
         start = javascript.find("{")
         start = javascript.find("{", start + 1)
@@ -28,6 +28,7 @@ class HorseSpider(scrapy.Spider):
         end = rev.find("}", end + 1)
         end = len(javascript) - end
 
+        horse = HorseItem()
         horse_details = javascript[start:end]
         horse_details_json = json.loads(horse_details)
         profile = horse_details_json["profile"]
