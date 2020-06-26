@@ -19,7 +19,7 @@ class RaceSpider(scrapy.Spider):
 
     allowed_domains = ["www.racingpost.com"]
 
-    start_urls = ["https://www.racingpost.com/racecards/2020-07-02/time-order"]
+    start_urls = ["https://www.racingpost.com/racecards/time-order"]
 
     def start_requests(self):
         url = self.start_urls[0]
