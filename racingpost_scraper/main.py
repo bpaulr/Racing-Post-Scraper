@@ -59,12 +59,5 @@ def main():
     print("JOB COMPLETE!")
 
 
-def main2():
-    process = CrawlerProcess(get_project_settings())
-
-    process.crawl("jockey-spider")
-    process.start()
-
-
 if __name__ == '__main__':
     main()
